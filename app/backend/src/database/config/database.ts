@@ -13,5 +13,5 @@ const config: Options = {
   },
   logging: false,
 }
-
+// ...
 module.exports = config;

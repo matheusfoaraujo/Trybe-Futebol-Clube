@@ -24,9 +24,7 @@ export default class AuthController {
   public userValidate = (req: Request, res: Response, next: NextFunction) => {
     try {
       const { authorization } = req.headers;
-      console.log('auth:', authorization);
       const user = this.service.userValidate(authorization);
-      console.log('user:', user);
       return res.status(200).json({ role: user.data.role });
     } catch (error) {
       return next(error);

@@ -1,5 +1,5 @@
 import jwt, { SignOptions } from 'jsonwebtoken';
-import IUserFull from '../interfaces/index';
+import IUserFull from '../interfaces/userInterfaces';
 import ErrorGenerate from './ErrorGenerate';
 
 export type UserType = Omit<IUserFull, 'password'>;

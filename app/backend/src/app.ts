@@ -1,6 +1,8 @@
 import express from 'express';
 import ErrorHandler from './middlewares/ErrorHandler';
 import loginRouter from './routes/login.routes';
+import matchRouter from './routes/match.routes';
+import teamRouter from './routes/team.routes';
 
 class App {
   public app: express.Express;
@@ -28,6 +30,8 @@ class App {
 
   private routes(): void {
     this.app.use(loginRouter);
+    this.app.use(teamRouter);
+    this.app.use(matchRouter);
     this.app.use(ErrorHandler);
   }
 

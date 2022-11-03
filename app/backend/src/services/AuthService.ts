@@ -1,14 +1,13 @@
 import * as bcryptjs from 'bcryptjs';
 import { JwtPayload } from 'jsonwebtoken';
 import UserModel from '../database/models/user';
-import IUserFull from '../interfaces/index';
+import IUserFull from '../interfaces/userInterfaces';
 import ErrorGenerate from '../utils/ErrorGenerate';
 import Token from '../utils/Token';
 
 export default class AuthService {
   public login = async (bodyEmail: string, bodyPassword: string): Promise<string> => {
     const user = await UserModel.findOne({ where: { email: bodyEmail } });
-    console.log('user:', user);
     if (!user) {
       throw new ErrorGenerate('Incorrect email or password', 401);
     }
@@ -25,12 +24,10 @@ export default class AuthService {
   };
 
   public userValidate = (token: string | undefined) => {
-    console.log('token:', token);
     if (!token) {
       throw new ErrorGenerate('A token is required', 401);
     }
     const payload = Token.decode(token);
-    console.log('payload:', payload);
     return payload as JwtPayload;
   };
 

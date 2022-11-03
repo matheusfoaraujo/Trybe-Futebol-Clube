@@ -1,21 +1,34 @@
-import MatchModel from '../database/models/match';
+/* import MatchModel from '../database/models/match';
 import TeamModel from '../database/models/team';
+import { IMatchResults } from '../interfaces/leaderBInterfaces';
 import { IMatch, IReqMatch } from '../interfaces/matchInterfaces';
 import ErrorGenerate from '../utils/ErrorGenerate';
 
-export default class MatchService {
-  public list = async (): Promise<IMatch[]> => {
-    const matches = await MatchModel.findAll({
-      include: [
-        { model: TeamModel, as: 'teamHome', attributes: { exclude: ['id'] } },
-        { model: TeamModel, as: 'teamAway', attributes: { exclude: ['id'] } },
-      ],
+export default class LeaderBService {
+  public filterResults = async (): Promise<IMatchResults> => {
+    const result = await this.searchedList();
+    const homeWinners: Array<string | undefined> = [];
+    const awayWinners: Array<string | undefined> = [];
+    const awayDraws: Array<string | undefined> = [];
+    const homeDraws: Array<string | undefined> = [];
+
+    result.forEach((el) => {
+      if (el.homeTeamGoals > el.awayTeamGoals) {
+        homeWinners.push(el.teamHome?.teamName);
+      }
+      if (el.homeTeamGoals < el.awayTeamGoals) {
+        homeWinners.push(el.teamAway?.teamName);
+      }
+      if (el.homeTeamGoals === el.awayTeamGoals) {
+        homeDraws.push(el.teamAway?.teamName, el.teamHome?.teamName);
+        awayDraws.push(el.teamAway?.teamName, el.teamHome?.teamName);
+      }
     });
-    return matches;
+    return { homeWinners, awayWinners, awayDraws, homeDraws };
   };
 
-  public searchedList = async (query: string): Promise<IMatch[]> => {
-    const inProgress = JSON.parse(query);
+  public searchedList = async (): Promise<IMatch[]> => {
+    const inProgress = 1;
     const searchedMatches = await MatchModel.findAll({
       where: { inProgress },
       include: [
@@ -55,14 +68,15 @@ export default class MatchService {
     });
   };
 
-  public findMatchById = async (id: number): Promise<IMatch> => {
+  private findMatchById = async (id: number): Promise<IMatch> => {
     const foundMatch = await MatchModel.findOne({ where: { id } });
     if (!foundMatch) throw new ErrorGenerate('Not Found', 404);
     return foundMatch;
   };
 
-  public findTeamById = async (id: number): Promise<void> => {
+  private findTeamById = async (id: number): Promise<void> => {
     const teamExists = await TeamModel.findOne({ where: { id } });
     if (!teamExists) throw new ErrorGenerate('There is no team with such id!', 404);
   };
 }
+ */

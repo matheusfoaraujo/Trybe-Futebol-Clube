@@ -2,7 +2,7 @@ import TeamModel from '../database/models/team';
 import { ITeam } from '../interfaces/teamInterfaces';
 import ErrorGenerate from '../utils/ErrorGenerate';
 
-export default class AuthService {
+export default class TeamService {
   public list = async (): Promise<ITeam[]> => {
     const allTeams = await TeamModel.findAll();
     return allTeams;

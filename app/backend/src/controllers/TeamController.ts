@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import TeamService from '../services/TeamService';
 
-export default class AuthController {
+export default class TeamController {
   private service: TeamService;
 
   constructor(service: TeamService) {

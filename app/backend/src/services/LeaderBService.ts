@@ -1,82 +1,128 @@
-/* import MatchModel from '../database/models/match';
-import TeamModel from '../database/models/team';
-import { IMatchResults } from '../interfaces/leaderBInterfaces';
-import { IMatch, IReqMatch } from '../interfaces/matchInterfaces';
-import ErrorGenerate from '../utils/ErrorGenerate';
+import { ILeaderBoard } from '../interfaces/leaderBInterfaces';
+import { IMatch } from '../interfaces/matchInterfaces';
+import { ITeam } from '../interfaces/teamInterfaces';
+import MatchService from './MatchService';
+import TeamService from './TeamService';
 
+const teamService = new TeamService();
+const matchService = new MatchService();
 export default class LeaderBService {
-  public filterResults = async (): Promise<IMatchResults> => {
-    const result = await this.searchedList();
-    const homeWinners: Array<string | undefined> = [];
-    const awayWinners: Array<string | undefined> = [];
-    const awayDraws: Array<string | undefined> = [];
-    const homeDraws: Array<string | undefined> = [];
+  private state: ILeaderBoard = {
+    name: '',
+    totalPoints: 0,
+    totalGames: 0,
+    totalVictories: 0,
+    totalDraws: 0,
+    totalLosses: 0,
+    goalsFavor: 0,
+    goalsOwn: 0,
+    goalsBalance: 0,
+    efficiency: '',
+  };
 
-    result.forEach((el) => {
-      if (el.homeTeamGoals > el.awayTeamGoals) {
-        homeWinners.push(el.teamHome?.teamName);
+  public homeLeaderBoard = async () => {
+    const teams = await teamService.list();
+    const matches = await matchService.searchedList('false');
+    const result = teams.map((team) => this.homeInput(team, matches));
+    return this.sort(result);
+  };
+
+  private homeInput = (team: ITeam, matches: IMatch[]) => {
+    const score = this.state;
+    matches.forEach((match) => {
+      if (match.homeTeam === team.id) {
+        score.name = match.teamHome?.teamName as string;
+        score.totalGames += 1;
+        if (match.homeTeamGoals > match.awayTeamGoals) score.totalVictories += 1;
+        if (match.homeTeamGoals === match.awayTeamGoals) score.totalDraws += 1;
+        score.totalPoints = (score.totalVictories * 3) + score.totalDraws;
+        if (match.homeTeamGoals < match.awayTeamGoals) score.totalLosses += 1;
+        score.goalsFavor += match.homeTeamGoals;
+        score.goalsOwn += match.awayTeamGoals;
+        score.goalsBalance = score.goalsFavor - score.goalsOwn;
+        score.efficiency = ((score.totalPoints / (score.totalGames * 3)) * 100).toFixed(2);
       }
-      if (el.homeTeamGoals < el.awayTeamGoals) {
-        homeWinners.push(el.teamAway?.teamName);
+      this.clearState();
+    });
+    return score;
+  };
+
+  public awayLeaderBoard = async () => {
+    const teams = await teamService.list();
+    const matches = await matchService.searchedList('false');
+    const result = teams.map((team) => this.awayInput(team, matches));
+    return this.sort(result);
+  };
+
+  private awayInput = (team: ITeam, matches: IMatch[]) => {
+    const score = this.state;
+    matches.forEach((match) => {
+      if (match.awayTeam === team.id) {
+        score.name = match.teamAway?.teamName as string;
+        score.totalGames += 1;
+        if (match.homeTeamGoals < match.awayTeamGoals) score.totalVictories += 1;
+        if (match.homeTeamGoals === match.awayTeamGoals) score.totalDraws += 1;
+        score.totalPoints = (score.totalVictories * 3) + score.totalDraws;
+        if (match.homeTeamGoals > match.awayTeamGoals) score.totalLosses += 1;
+        score.goalsFavor += match.awayTeamGoals;
+        score.goalsOwn += match.homeTeamGoals;
+        score.goalsBalance = score.goalsFavor - score.goalsOwn;
+        score.efficiency = ((score.totalPoints / (score.totalGames * 3)) * 100).toFixed(2);
       }
-      if (el.homeTeamGoals === el.awayTeamGoals) {
-        homeDraws.push(el.teamAway?.teamName, el.teamHome?.teamName);
-        awayDraws.push(el.teamAway?.teamName, el.teamHome?.teamName);
+      this.clearState();
+    });
+    return score;
+  };
+
+  public leaderBoard = async () => {
+    const homelb = await this.homeLeaderBoard();
+    const awaylb = await this.awayLeaderBoard();
+    const merged = awaylb.map((lb) => this.lbInput(lb, homelb));
+    return this.sort(merged);
+  };
+
+  private lbInput = (lb: ILeaderBoard, homelb: ILeaderBoard[]) => {
+    const score = this.state;
+    homelb.forEach((el) => {
+      if (el.name === lb.name) {
+        score.name = el.name;
+        score.totalPoints = el.totalPoints + lb.totalPoints;
+        score.totalGames = el.totalGames + lb.totalGames;
+        score.totalVictories = el.totalVictories + lb.totalVictories;
+        score.totalDraws = el.totalDraws + lb.totalDraws;
+        score.totalLosses = el.totalLosses + lb.totalLosses;
+        score.goalsFavor = el.goalsFavor + lb.goalsFavor;
+        score.goalsOwn = el.goalsOwn + lb.goalsOwn;
+        score.goalsBalance = score.goalsFavor - score.goalsOwn;
+        score.efficiency = ((score.totalPoints / (score.totalGames * 3)) * 100).toFixed(2);
       }
+      this.clearState();
     });
-    return { homeWinners, awayWinners, awayDraws, homeDraws };
+    return score;
   };
 
-  public searchedList = async (): Promise<IMatch[]> => {
-    const inProgress = 1;
-    const searchedMatches = await MatchModel.findAll({
-      where: { inProgress },
-      include: [
-        { model: TeamModel, as: 'teamHome', attributes: { exclude: ['id'] } },
-        { model: TeamModel, as: 'teamAway', attributes: { exclude: ['id'] } },
-      ],
-    });
-    return searchedMatches;
+  private clearState = () => {
+    this.state = {
+      name: '',
+      totalPoints: 0,
+      totalGames: 0,
+      totalVictories: 0,
+      totalDraws: 0,
+      totalLosses: 0,
+      goalsFavor: 0,
+      goalsOwn: 0,
+      goalsBalance: 0,
+      efficiency: '',
+    };
   };
 
-  public create = async (newMatch: IReqMatch): Promise<IMatch> => {
-    if (newMatch.awayTeam === newMatch.homeTeam) {
-      throw new ErrorGenerate('It is not possible to create a match with two equal teams', 422);
-    }
-    await this.findTeamById(newMatch.awayTeam);
-    await this.findTeamById(newMatch.homeTeam);
-    const result = await MatchModel.create({ ...newMatch, inProgress: 1 });
-    return result;
-  };
-
-  public updateProgress = async (id: number): Promise<void> => {
-    await this.findMatchById(id);
-    const inProgress = 0;
-    await MatchModel.update({ inProgress }, {
-      where: {
-        id,
-      },
-    });
-  };
-
-  public updateGoals = async (id: number, hTGoals: number, aTGoals: number): Promise<void> => {
-    await this.findMatchById(id);
-    await MatchModel.update({ homeTeamGoals: hTGoals, awayTeamGoals: aTGoals }, {
-      where: {
-        id,
-      },
-    });
-  };
-
-  private findMatchById = async (id: number): Promise<IMatch> => {
-    const foundMatch = await MatchModel.findOne({ where: { id } });
-    if (!foundMatch) throw new ErrorGenerate('Not Found', 404);
-    return foundMatch;
-  };
-
-  private findTeamById = async (id: number): Promise<void> => {
-    const teamExists = await TeamModel.findOne({ where: { id } });
-    if (!teamExists) throw new ErrorGenerate('There is no team with such id!', 404);
+  private sort = (array: ILeaderBoard[]) => {
+    array.sort((a, b) =>
+      b.totalPoints - a.totalPoints
+      || b.totalVictories - a.totalVictories
+      || b.goalsBalance - a.goalsBalance
+      || b.goalsFavor - a.goalsFavor
+      || b.goalsOwn - a.goalsOwn);
+    return array;
   };
 }
- */

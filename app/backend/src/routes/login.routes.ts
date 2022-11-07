@@ -10,6 +10,6 @@ const authController = new AuthController(authService);
 
 router.post('/login', validateBody(schemas.loginSchema), authController.login);
 router.get('/login/validate', authController.userValidate);
-router.post('/user', validateBody(schemas.createUserSchema), authController.create);
+// router.post('/user', validateBody(schemas.createUserSchema), authController.create);
 
 export default router;

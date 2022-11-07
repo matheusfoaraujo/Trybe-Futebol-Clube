@@ -15,7 +15,6 @@ export default class MatchController {
   public list = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { inProgress } = req.query;
-      console.log(inProgress);
       if (inProgress) {
         const searchedMatches = await this.service.searchedList(inProgress as string);
         return res.status(200).json(searchedMatches);

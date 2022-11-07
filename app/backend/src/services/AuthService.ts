@@ -1,7 +1,6 @@
 import * as bcryptjs from 'bcryptjs';
 import { JwtPayload } from 'jsonwebtoken';
 import UserModel from '../database/models/user';
-import IUserFull from '../interfaces/userInterfaces';
 import ErrorGenerate from '../utils/ErrorGenerate';
 import Token from '../utils/Token';
 
@@ -31,7 +30,7 @@ export default class AuthService {
     return payload as JwtPayload;
   };
 
-  public create = async (user: Omit<IUserFull, 'id'>) => {
+  /* public create = async (user: Omit<IUserFull, 'id'>) => {
     const userExist = await UserModel.findOne({ where: { email: user.email } });
 
     if (userExist) throw new ErrorGenerate('User already registered', 409);
@@ -41,5 +40,5 @@ export default class AuthService {
     const { id, username, email, role } = newUser;
     const payload = { id, username, email, role };
     return Token.encode(payload);
-  };
+  }; */
 }

@@ -14,8 +14,8 @@ export default class MatchService {
     return matches;
   };
 
-  public searchedList = async (query: string): Promise<IMatch[]> => {
-    const inProgress = JSON.parse(query);
+  public searchedList = async (query: string) => {
+    const inProgress = query === 'true' ? 1 : 0;
     const searchedMatches = await MatchModel.findAll({
       where: { inProgress },
       include: [

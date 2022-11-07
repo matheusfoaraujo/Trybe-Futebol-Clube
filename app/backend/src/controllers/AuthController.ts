@@ -8,7 +8,7 @@ export default class AuthController {
     this.service = service;
     this.login = this.login.bind(this);
     this.userValidate = this.userValidate.bind(this);
-    this.create = this.create.bind(this);
+    // this.create = this.create.bind(this);
   }
 
   public login = async (req: Request, res: Response, next: NextFunction) => {
@@ -31,7 +31,7 @@ export default class AuthController {
     }
   };
 
-  public async create(req: Request, res: Response, next: NextFunction) {
+  /*  public async create(req: Request, res: Response, next: NextFunction) {
     try {
       const { username, email, password, role } = req.body;
       const token = await this.service.create({
@@ -42,5 +42,5 @@ export default class AuthController {
     } catch (error) {
       return next(error);
     }
-  }
+  } */
 }
